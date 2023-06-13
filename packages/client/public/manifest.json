@@ -1,0 +1,8 @@
+{
+  "short_name": "Thrift Ad GPT",
+  "name": "Thrift Ad GPT",
+  "start_url": ".",
+  "display": "standalone",
+  "theme_color": "#000000",
+  "background_color": "#ffffff"
+}
