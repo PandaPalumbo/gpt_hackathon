@@ -1,3 +1,5 @@
 node_modules/
 packages/server/API.json
 packages/server/uploads
+packages/server/.env
+*.json

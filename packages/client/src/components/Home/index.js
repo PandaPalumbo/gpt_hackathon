@@ -1,37 +1,58 @@
-import React, { useCallback } from "react";
-import { useDropzone } from "react-dropzone";
-import axios from 'axios';
+import React, {useState} from "react";
+import Dropzone from '../Dropzone';
+import {Spinner} from "react-bootstrap";
 
-function Dropzone() {
-    const onDrop = useCallback(async acceptedFiles => {
-        const file = acceptedFiles[0];
-        const formData = new FormData();
-        formData.append("file", file);
+function Home() {
+    const [uploadResult, setUploadResult] = useState(null);
+    const [loading, setLoading] = useState(false);
 
-        // replace with your server URL
-        const res = await axios.post("/api/upload", formData, {
-            headers: {
-                'Content-Type': 'multipart/form-data'
-            }
-        });
+    const handleUpload = (result) => {
+        setUploadResult(result);
+    };
 
-        if (res.data) {
-            console.log('Image uploaded successfully');
-        }
-    }, []);
+    const containerStyle = {
+        display: "flex",
+        flexDirection: "column",
+        justifyContent: "center",
+        alignItems: "center",
+        padding: "50px"
+    };
 
-    const {getRootProps, getInputProps, isDragActive} = useDropzone({onDrop});
+    const columnStyle = {
+        padding: "10px",
+        margin: "auto",
+        width: "75%",
+    };
+
+    const heightBox = {
+        padding: 15,
+        height: 500,
+    }
 
     return (
-        <div {...getRootProps()}>
-            <input {...getInputProps()} />
-            {
-                isDragActive ?
-                    <p>Drop the image here ...</p> :
-                    <p>Drag 'n' drop some files here, or click to select files</p>
-            }
+        <div style={containerStyle}>
+            <h1>
+                Resale Writer AI
+            </h1>
+            <h3>
+                Drop some images to begin!
+            </h3>
+            <div style={columnStyle}>
+                <Dropzone setLoading={setLoading} onUpload={handleUpload}/>
+            </div>
+            <div style={{...columnStyle, ...heightBox}}>
+                {
+                    loading ? <Spinner/> :
+                        uploadResult ?
+                            <h3>{uploadResult}</h3>
+                            :
+                            <h3>
+                                Your Ad will appear here once you've uploaded a picture!
+                            </h3>
+                }
+            </div>
         </div>
-    )
+    );
 }
 
-export default Dropzone;
+export default Home;

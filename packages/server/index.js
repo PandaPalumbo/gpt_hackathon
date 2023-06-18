@@ -6,6 +6,8 @@ const bodyParser = require('body-parser')
 const multer = require('multer');
 const vision = require('@google-cloud/vision');
 const jsonminify = require("jsonminify");
+const { Configuration, OpenAIApi } = require("openai");
+const cleanDeep = require("clean-deep");
 
 
 const client = new vision.ImageAnnotatorClient({
@@ -13,22 +15,24 @@ const client = new vision.ImageAnnotatorClient({
 });
 const upload = multer({dest: 'uploads/'});
 
-const { Configuration, OpenAIApi } = require("openai");
 const configuration = new Configuration({
-    apiKey: "YOUR_API_KEY_HERE",
+    apiKey: process.env.CHAT_GPT,
 });
 const openai = new OpenAIApi(configuration);
 
 
 async function generateAdViaGPT(visionAIResult){
     try{
-        return await openai.createCompletion({
-            max_tokens: 2700,
+        let minify = jsonminify(JSON.stringify(cleanDeep(visionAIResult)));
+        const {data} =  await openai.createCompletion({
+            max_tokens: 1500,
             model: "text-davinci-003",
-            prompt: `Generate an ad for this item based on this JSON data: ${jsonminify(JSON.stringify(visionAIResult))}`,
+            prompt: `Generate an ad for this Google Vision API JSON Data: ${minify}`,
         });
+        return data.choices[0].text.replace('\n', ' ');
     } catch (e) {
         console.error(e)
+        return 'Error generating ad, please try again!'
     }
 }
 
@@ -39,6 +43,7 @@ app.use(cors({
 app.use(bodyParser.json())
 
 app.post('/api/upload', upload.single('file'), async (req, res, next) => {
+    const {body} = req;
     try {
         const [result] = await client.annotateImage({
             image: {
@@ -60,15 +65,11 @@ app.post('/api/upload', upload.single('file'), async (req, res, next) => {
                 // { type: 'OBJECT_LOCALIZATION' }
             ],
         });
-
         // For simplicity, we'll just log the result and send it as the response.
-        console.log(result);
-        const GPTAd = await generateAdViaGPT(result);
-        console.log(GPTAd);
-        res.json(result);
-
+        const GPTAd = await generateAdViaGPT({...result, ...body});
+        res.json(GPTAd);
     } catch (error) {
-        console.error(error);
+        return 'Error generating ad, please try again!'
     }
 });
 
