@@ -27,7 +27,7 @@ async function generateAdViaGPT(visionAIResult){
         const {data} =  await openai.createCompletion({
             max_tokens: 1500,
             model: "text-davinci-003",
-            prompt: `Generate an ad for this Google Vision API JSON Data: ${minify}`,
+            prompt: `Generate an ad for this item based on this JSON data: ${minify}`,
         });
         return data.choices[0].text.replace('\n', ' ');
     } catch (e) {
